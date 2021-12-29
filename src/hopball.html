@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            .button {
+                background-color: #64f956;
+                border: none;
+                color: black;
+                padding: 15px 32px;
+                text-align: center;
+                text-decoration: none;
+                display: inline-block;
+                font-size: 16px;
+                margin: 4px 2px;
+                border-radius: 10px;
+                cursor: pointer;
+            }
+            .gradient-text {
+                background-image: linear-gradient(45deg, blue, red);
+                color: transparent;
+                -webkit-background-clip: text;
+                font-family: "Pacifico", cursive;
+                font-size: 85px;
+                text-align: center;
+                animation-name: example;
+                animation-duration: 10s;
+                animation-iteration-count: infinite;
+            }
+            .gradient-btn {
+                background-image: linear-gradient(
+                    45deg,
+                    rgb(255, 238, 0),
+                    rgb(255, 115, 0)
+                );
+                color: transparent;
+                -webkit-background-clip: text;
+                font-family: "Pacifico", cursive;
+                font-size: 70px;
+                text-align: center;
+                cursor: pointer;
+                border: none;
+                margin-left: 100px;
+            }
+
+            @keyframes example {
+                from {
+                    padding-top: -3px;
+                }
+                to {
+                    padding-top: 5px;
+                }
+            }
+        </style>
+    </head>
+
+    <body style="background-color: black">
+        <table>
+            <tr style="width: 100%">
+                <td style="width: 33.33%">
+                    <div></div>
+                </td>
+                <td style="width: 33.33%">
+                    <canvas id="canvas1" width="524" height="524">
+                        This browser does not support canvas element!
+                    </canvas>
+                    <div
+                        id="startScreen"
+                        style="
+                            background-color: #47344a;
+                            width: 524px;
+                            height: 524px;
+                        "
+                        hidden
+                    >
+                        <div style="padding-top: 5px">
+                            <h1 class="gradient-text">HOP BALL</h1>
+                        </div>
+                        <div>
+                            <button
+                                class="gradient-btn"
+                                type="button"
+                                onclick="startclick(true)"
+                            >
+                                Continue
+                            </button>
+                        </div>
+                    </div>
+                </td>
+                <td style="width: 33.33%"></td>
+            </tr>
+        </table>
+
+        <script type="text/javascript" src="../Common/webgl-utils.js"></script>
+        <script type="text/javascript" src="../Common/initShaders.js"></script>
+        <script type="text/javascript" src="../Common/MV.js"></script>
+        <script type="text/javascript" src="hopball.js"></script>
+    </body>
+</html>

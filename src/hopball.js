@@ -1,10 +1,9 @@
 window.onload = function init() {
     const [gl, aspect] = setupWebGL();
     const hier = new Hierarchy(gl);
-    const gui = new GUI(aspect);
-    ///const shader = .... give shader objects to gameobjecs explicitly
+
     start(hier.gameObjects);
-    render(gl, hier.gameObjects, gui);
+    render(gl, hier.gameObjects);
 
     window.onkeydown = function (event) {
         isclicked = true;
@@ -20,6 +19,20 @@ window.onload = function init() {
         }
     };
 };
+
+function startclick() {
+    const canvas = document.getElementById("canvas1");
+    canvas.hidden = false;
+    const startScreen = document.getElementById("startScreen");
+    startScreen.hidden = true;
+
+    const [gl, aspect] = setupWebGL();
+    const hier = new Hierarchy(gl);
+
+    start(hier.gameObjects);
+    render(gl, hier.gameObjects);
+}
+
 var isclicked = false;
 var isclickedsag = false;
 var isclickedsol = false;
@@ -55,11 +68,6 @@ class BlueCubeScript extends Script {
             this.gameObject.transform.translation
         );
 
-        this.gameObject.transform.scaling = mult(
-            scalem(0.99, 0.99, 0.99),
-            this.gameObject.transform.scaling
-        );
-
         const t = this.gameObject.transform.translation;
         const x = t[0][3];
         const y = t[1][3];
@@ -67,23 +75,29 @@ class BlueCubeScript extends Script {
 
         if (x > 10 || z > 10) {
             this.gameObject.transform.translation = this.initialTranslation;
-            this.gameObject.transform.scaling = mat4();
         }
     }
 
     onCollision(other) {
         if (other.name != "ground") {
             delete this.gameObjects[other.name];
+
+            const canvas = document.getElementById("canvas1");
+            canvas.hidden = true;
+            const startScreen = document.getElementById("startScreen");
+            startScreen.hidden = false;
         }
     }
 
-    zıpla(other, zıpla) {
-        if (other != "ground") {
-            this.gameObjects[other].transform.translation = translate(
-                zıpla * 2,
-                1,
-                9
-            );
+    jump(other, dgr) {
+        if (other.name != "ground") {
+            if (other == "shepe") {
+                this.gameObjects[other].transform.translation = translate(
+                    dgr * 2,
+                    1,
+                    9
+                );
+            }
         }
     }
 }
@@ -92,79 +106,76 @@ class Hierarchy {
     constructor(gl) {
         const gameObjects = {};
         this.gameObjects = gameObjects;
-        gameObjects["square"] = new Cube(
-            "square",
-            gl,
-            vec4(1.0, 0.7, 0.2, 1.0),
-            new Transform({ translation: translate(3.5, 0, -5) })
-        );
 
-        gameObjects["blueCube"] = new Cube(
-            "blueCube",
-            gl,
-            vec4(1.0, 0.0, 1.0, 1.0),
-            new Transform({ translation: translate(-2.5, 0, -2) })
-        );
-        const script = new BlueCubeScript();
-        script.gameObject = gameObjects["blueCube"];
-        script.gameObjects = this.gameObjects;
-        //gameObjects["blueCube"].component.script = script;
+        for (let i = 1; i < 10; i++) {
+            var name = "fixedCube" + i;
+            gameObjects[name] = setGameObjectCube(name, gl);
+            const script = new BlueCubeScript();
+            script.gameObject = gameObjects[name];
+            script.gameObjects = this.gameObjects;
 
-        ////
-        gameObjects["fixedCube"] = new Cube(
-            "fixedCube",
-            gl,
-            vec4(1.0, 0.5, 0.0, 1.0),
-            new Transform({ translation: translate(-2, 0, 2) })
-        );
-        gameObjects["fixedCube2"] = new Cube(
-            "fixedCube2",
-            gl,
-            vec4(0.2, 0.1, 1.0, 1.0),
-            new Transform({ translation: translate(2, 0, 2) })
-        );
+            gameObjects[name].component.script = script;
+        }
 
-        gameObjects["fixedCube3"] = new Cube(
-            "fixedCube3",
-            gl,
-            vec4(1.0, 0.5, 0.5, 1.0),
-            new Transform({ translation: translate(-2, 0, -2) })
-        );
-        gameObjects["fixedCube4"] = new Cube(
-            "fixedCube4",
-            gl,
-            vec4(0.0, 0.5, 0.0, 1.0),
-            new Transform({ translation: translate(2, 0, -2) })
-        );
-        gameObjects["fixedCub5"] = new Cube(
-            "fixedCube5",
-            gl,
-            vec4(0.0, 0.6, 1.0, 1.0),
-            new Transform({ translation: translate(-3, 0, 4) })
-        );
-
-        gameObjects["shepe2"] = new Shepe(
-            "shepe2",
+        gameObjects["shepe"] = new Shepe(
+            "shepe",
             gl,
             vec4(1.0, 0.0, 0.0, 1.0),
             new Transform({
-                scaling: scalem(1.2, 1, 1.2),
+                scaling: scalem(1.2, 0, 1.2),
                 translation: translate(0, 1, 9),
             })
         );
-        const script3 = new BlueCubeScript();
-        script3.gameObject = gameObjects["shepe2"];
-        script3.gameObjects = this.gameObjects;
-        gameObjects["shepe2"].component.script = script3;
+        const script = new BlueCubeScript();
+        script.gameObject = gameObjects["shepe"];
+        script.gameObjects = this.gameObjects;
+        gameObjects["shepe"].component.script = script;
 
-        //// The simulation ground
         gameObjects["ground"] = new Cube(
             "ground",
             gl,
-            vec4(0.0, 1.0, 0.6, 1.0),
-            new Transform({ scaling: scalem(10, 0.7, 20) })
+            vec4(0.91, 0.704, 0.0273, 1.0),
+            new Transform({
+                scaling: scalem(10, 0.3, 10000),
+                translation: translate(0, 0, 0),
+            })
+        );
+        gameObjects["wall"] = setGameObjectWall(
+            "wall",
+            gl,
+            translate(7.0, 3, 0)
+        );
+
+        gameObjects["wall2"] = setGameObjectWall(
+            "wall2",
+            gl,
+            translate(-7.2, 3, 0)
         );
     }
+}
+
+function setGameObjectCube(name, gl) {
+    var x = randomInRange(2, -2.5);
+    var z = randomInRange(-20, -80);
+
+    return new Cube(
+        name,
+        gl,
+        vec4(0.91, 0.0273, 0.733, 1.0),
+        new Transform({ translation: translate(x, 0.8, z) })
+    );
+}
+
+function setGameObjectWall(name, gl, translation) {
+    return new Cube(
+        name,
+        gl,
+        vec4(0.278, 0.204, 0.29, 1.0),
+        new Transform({
+            scaling: scalem(10, 100, 10000),
+            translation: translation,
+        })
+    );
 }
 
 function mults(scalar, transform) {
@@ -352,50 +363,24 @@ class GameObject {
 
     createVertexShader() {
         this.vertexShader = ` 
-      // attribute  vec4 vPosition;
-      // attribute  vec4 vColor;
-      // attribute vec4 a_Color;
-      // varying vec4 fColor;
-      // varying vec4 v_Color;
-      // uniform bool clicked;
-      //uniform mat4 modelViewProjectionMatrix;
-
-      attribute vec4 vPosition;
-      attribute vec4 vNormal;
+      attribute  vec4 vPosition;
+      attribute  vec4 vColor;
       attribute vec4 a_Color;
-      varying vec3 N, L, E;
+      varying vec4 fColor;
       varying vec4 v_Color;
       uniform bool clicked;
-      uniform mat4 modelViewProjectionMatrix;
-      uniform mat4 projectionMatrix;
-      uniform vec4 lightPosition;
-      uniform mat3 normalMatrix;
 
-      
+      uniform mat4 modelViewProjectionMatrix;
 
       void main()
       {
-        vec3 light;
-        vec3 pos = (modelViewProjectionMatrix * vPosition).xyz;
-        if(lightPosition.z == 0.0)  L = normalize(lightPosition.xyz);
-        else  L = normalize(lightPosition).xyz - pos;
-
-
-
-        // gl_Position = modelViewProjectionMatrix * vPosition;
-        // fColor = vColor;
-
-
+        gl_Position = modelViewProjectionMatrix * vPosition;
+        fColor = vColor;
         if (clicked) { //  Draw in red if mouse is pressed
           v_Color = vec4(1.0, 0.0, 0.0, 1.0); // red
        } else {
           v_Color = a_Color;
         }
-
-        E =  -normalize(pos);
-        N = normalize( normalMatrix*vNormal.xyz);
-        gl_Position = modelViewProjectionMatrix * vPosition;
-
       }
     `;
         return this.vertexShader;
@@ -408,38 +393,12 @@ class GameObject {
       #endif
 
 
-      //varying vec4 fColor;
-
-      uniform vec4 ambientProduct;
-      uniform vec4 diffuseProduct;
-      uniform vec4 specularProduct;
-      uniform float shininess;
-      varying vec3 N, L, E;
+      varying vec4 fColor;
 
       void
       main()
       {
-        vec4 fColor;
-    
-        vec3 H = normalize( L + E );
-        vec4 ambient = ambientProduct;
-    
-        float Kd = max( dot(L, N), 0.0 );
-        vec4  diffuse = Kd*diffuseProduct;
-    
-        float Ks = pow( max(dot(N, H), 0.0), shininess );
-        vec4  specular = Ks * specularProduct;
-        
-        if( dot(L, N) < 0.0 ) specular = vec4(0.0, 0.0, 0.0, 1.0);
-    
-        fColor = ambient + diffuse +specular;
-        fColor.a = 1.0;
-    
-        gl_FragColor = fColor;
-
-
-
-        //gl_FragColor = fColor;
+          gl_FragColor = fColor;
       }
     `;
         return this.fragmentShader;
@@ -447,14 +406,14 @@ class GameObject {
 
     initAttributeBuffers() {
         //// color attribute
-        // this.cBuffer = this.gl.createBuffer();
-        // this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.cBuffer);
-        // this.gl.bufferData(
-        //   this.gl.ARRAY_BUFFER,
-        //   flatten(this.colorsArray),
-        //   this.gl.STATIC_DRAW
-        // );
-        //this.vColor = this.gl.getAttribLocation(this.program, "vColor");
+        this.cBuffer = this.gl.createBuffer();
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.cBuffer);
+        this.gl.bufferData(
+            this.gl.ARRAY_BUFFER,
+            flatten(this.colorsArray),
+            this.gl.STATIC_DRAW
+        );
+        this.vColor = this.gl.getAttribLocation(this.program, "vColor");
 
         //// position attribute
         this.vBuffer = this.gl.createBuffer();
@@ -473,27 +432,6 @@ class GameObject {
         );
         u_Clicked = this.gl.getUniformLocation(this.program, "clicked");
 
-        this.ambientProductLoc = this.gl.getUniformLocation(
-            this.program,
-            "ambientProduct"
-        );
-        this.diffuseProductLoc = this.gl.getUniformLocation(
-            this.program,
-            "diffuseProduct"
-        );
-        this.specularProductLoc = this.gl.getUniformLocation(
-            this.program,
-            "specularProduct"
-        );
-        this.lightPositionLoc = this.gl.getUniformLocation(
-            this.program,
-            "lightPosition"
-        );
-        this.shininessLoc = this.gl.getUniformLocation(
-            this.program,
-            "shininess"
-        );
-
         if (!u_Clicked) {
             console.log(
                 "Failed to get the storage location of uniform variable"
@@ -506,10 +444,10 @@ class GameObject {
         //// switch to this objects program
         this.gl.useProgram(this.program);
 
-        // //// color attribute
-        // this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.cBuffer);
-        // this.gl.vertexAttribPointer(this.vColor, 4, this.gl.FLOAT, false, 0, 0);
-        // this.gl.enableVertexAttribArray(this.vColor);
+        //// color attribute
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.cBuffer);
+        this.gl.vertexAttribPointer(this.vColor, 4, this.gl.FLOAT, false, 0, 0);
+        this.gl.enableVertexAttribArray(this.vColor);
 
         //// position attribute
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vBuffer);
@@ -535,27 +473,13 @@ class GameObject {
             flatten(modelViewProjectionMatrix)
         );
 
-        var ambientProduct = mult(lightAmbient, materialAmbient);
-        var diffuseProduct = mult(lightDiffuse, materialDiffuse);
-        var specularProduct = mult(lightSpecular, materialSpecular);
-
-        this.gl.uniform4fv(this.ambientProductLoc, flatten(ambientProduct));
-
-        this.gl.uniform4fv(this.diffuseProductLoc, flatten(diffuseProduct));
-
-        this.gl.uniform4fv(this.specularProductLoc, flatten(specularProduct));
-
-        this.gl.uniform4fv(this.lightPositionLoc, flatten(lightPosition));
-
-        this.gl.uniform1f(this.shininessLoc, materialShininess);
-
         //// draw
         //this.gl.drawArrays(this.gl.TRIANGLES, 0, this.pointsArray.length);
         for (var i = 0; i < index; i += 3)
             this.gl.drawArrays(this.gl.TRIANGLES, i, 3);
 
         //// disable vaa's
-        //this.gl.disableVertexAttribArray(this.vColor);
+        this.gl.disableVertexAttribArray(this.vColor);
         this.gl.disableVertexAttribArray(this.vPosition);
     }
 }
@@ -575,21 +499,13 @@ class Shepe extends GameObject {
     }
 }
 
-class Square extends GameObject {
-    constructor(name, gl, color, transform) {
-        const [pointsArray, colorsArray] = squarePointsAndColors(color);
-        //const collider = new NaiveBoxCollider(cubeVertices());
-        super(name, gl, pointsArray, colorsArray, transform);
-    }
-}
-
 function start(gameObjects) {
     for (const gameObject of Object.values(gameObjects)) {
         if (gameObject.component.script) gameObject.component.script.start();
     }
 }
 
-function render(gl, gameObjects, gui, timestamp) {
+function render(gl, gameObjects, timestamp) {
     ////// GameEngine related
     //// update game time
     if (timestamp) GameTime.updateTimestamp(timestamp);
@@ -616,6 +532,7 @@ function render(gl, gameObjects, gui, timestamp) {
         if (gameObject.component.script) {
             for (const other of gameObject.collidesWith) {
                 gameObject.component.script.onCollision(other);
+                return;
             }
         }
     }
@@ -638,7 +555,7 @@ function render(gl, gameObjects, gui, timestamp) {
         }
         for (const gameObject of Object.values(gameObjects)) {
             if (gameObject.component.script) {
-                gameObject.component.script.zıpla(gameObject.name, deger);
+                gameObject.component.script.jump(gameObject.name, deger);
             }
         }
     }
@@ -647,22 +564,28 @@ function render(gl, gameObjects, gui, timestamp) {
     //// clear the background
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    // gui.radius.slider.value = 14.05;
-    // gui.theta.slider.value = 23;
-    // gui.phi.slider.value = 88;
+    var radiusvalue = 14.05;
+    var thetavalue = 23;
+    var phivalue = 88;
 
     //// camera settings
     eye = sphericalEye(
-        gui.radius.slider.value,
-        gui.theta.slider.value * (Math.PI / 180),
-        gui.phi.slider.value * (Math.PI / 180)
+        radiusvalue,
+        thetavalue * (Math.PI / 180),
+        phivalue * (Math.PI / 180)
     );
     const viewMatrix = lookAt(eye, at, up);
+
+    var fovyvalue = 90;
+    var aspectvalue = 1;
+    var nearvalue = 0.1;
+    var farvalue = 1000;
+
     const projectionMatrix = perspective(
-        gui.fovy.slider.value,
-        gui.aspect.slider.value,
-        gui.near.slider.value,
-        gui.far.slider.value
+        fovyvalue,
+        aspectvalue,
+        nearvalue,
+        farvalue
     );
 
     //// draw all objects
@@ -673,7 +596,7 @@ function render(gl, gameObjects, gui, timestamp) {
     }
 
     //// call self for recursion
-    requestAnimFrame((timestamp) => render(gl, gameObjects, gui, timestamp));
+    requestAnimFrame((timestamp) => render(gl, gameObjects, timestamp));
 }
 
 function setupWebGL() {
@@ -684,7 +607,7 @@ function setupWebGL() {
     }
     gl.viewport(0, 0, canvas.width, canvas.height);
     aspect = canvas.width / canvas.height;
-    gl.clearColor(1.0, 1.0, 1.0, 1.0);
+    gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.enable(gl.DEPTH_TEST);
 
     canvas.onmousedown = function (ev) {
@@ -699,96 +622,31 @@ function setupWebGL() {
             y < rect.bottom
         ) {
             isclicked = true;
+
+            var pixels = new Uint8Array(4);
+            gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
         }
     };
 
     return [gl, aspect];
 }
 
-//// SHOOT WEB Components
-class Slider {
-    constructor(id, min, max, step, value, divId) {
-        //// create - get elements
-        this.div = document.getElementById(divId);
-        this.labelSpan = document.createElement("span");
-        this.slider = document.createElement("input");
+function check(gl, x, y, u_Clicked) {
+    var picked = false;
 
-        //// set up elements
-        this.labelSpan.setAttribute("id", id + "LabelSpan");
-        this.labelSpan.innerHTML = value;
+    gl.uniform1i(u_Clicked, 1);
 
-        this.slider.setAttribute("type", "range");
-        this.slider.setAttribute("min", min);
-        this.slider.setAttribute("max", max);
-        this.slider.setAttribute("step", step);
-        this.slider.setAttribute("id", id);
-        this.slider.setAttribute("value", value);
-        this.slider.oninput = function (event) {
-            document.getElementById(id + "LabelSpan").innerHTML =
-                event.target.value;
-        };
+    var pixels = new Uint8Array(4);
+    gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
 
-        //// build the hierarchy
-        this.div.appendChild(document.createTextNode(this.slider.id + " "));
-        this.div.appendChild(document.createTextNode(this.slider.min));
-        this.div.appendChild(this.slider);
-        this.div.appendChild(document.createTextNode(this.slider.max + " ("));
-        this.div.appendChild(this.labelSpan);
-        this.div.appendChild(document.createTextNode(")"));
+    if (pixels[0] == 255) {
+        picked = true;
     }
-}
 
-class Text {
-    constructor(text, divId) {
-        document
-            .getElementById(divId)
-            .appendChild(
-                document
-                    .createElement("span")
-                    .appendChild(document.createTextNode(text))
-            );
-    }
-}
-class Br {
-    constructor(divId) {
-        document
-            .getElementById(divId)
-            .appendChild(document.createElement("br"));
-    }
-}
-class Hr {
-    constructor(divId) {
-        document
-            .getElementById(divId)
-            .appendChild(document.createElement("hr"));
-    }
-}
-class GUI {
-    constructor(aspect) {
-        new Hr("cam-props");
-        new Text("Camera Position", "cam-props");
-        new Br("cam-props");
-        this.radius = new Slider("radius", 0.05, 100, 1, 17, "cam-props");
-        new Br("cam-props");
-        this.theta = new Slider("theta", -180, 180, 1, 51, "cam-props");
-        new Br("cam-props");
-        this.phi = new Slider("phi", -180, 180, 1, 83, "cam-props");
+    gl.uniform1i(u_Clicked, 0);
 
-        new Hr("cam-props");
-        new Text("Camera Projection", "cam-props");
-        new Br("cam-props");
-        this.near = new Slider("near", 0.01, 3, 0.01, 0.1, "cam-props");
-        new Br("cam-props");
-        this.far = new Slider("far", 3, 1000, 1, 1000, "cam-props");
-        new Br("cam-props");
-        this.fovy = new Slider("fovy", 10, 120, 1, 90, "cam-props");
-        new Br("cam-props");
-        this.aspect = new Slider("aspect", 0.01, 10, 0.1, aspect, "cam-props");
-        new Hr("cam-props");
-    }
+    return picked;
 }
-
-//// End of SHOOT WEB COMPONENTS
 
 ////
 function cubeVertices() {
@@ -809,7 +667,7 @@ function cubePointsAndColors(color) {
     const colors = [];
     const vertices = cubeVertices();
     const colorList = [color, color, color, color, color, color, color, color];
-
+    //color = setColors(color, 16);
     const indices = [
         1, 0, 3, 1, 2, 3, 2, 3, 7, 2, 6, 7, 3, 0, 4, 3, 7, 4, 6, 5, 1, 6, 2, 1,
         4, 5, 6, 4, 7, 6, 5, 4, 0, 5, 1, 0,
@@ -824,30 +682,16 @@ function cubePointsAndColors(color) {
 function shepePointsAndColors(color) {
     const colors = [];
 
-    tetrahedron(va, vb, vc, vd, 3);
+    color = setColors(color, 124);
+
+    tetrahedron(va, vb, vc, vd, 5);
     for (let i of pointsArray) {
         colors.push(color);
     }
 
     return [pointsArray, colors];
 }
-function squarePointsAndColors(color) {
-    const points = [];
-    const colors = [];
-    const vertices = cubeVertices();
-    const colorList = [color, color, color, color, color, color, color, color];
 
-    const indices = [
-        1, 0, 3, 1, 2, 3, 2, 3, 7, 2, 6, 7, 3, 0, 4, 3, 7, 4, 6, 5, 1, 6, 2, 1,
-        4, 5, 6, 4, 7, 6, 5, 4, 0, 5, 1, 0,
-    ];
-
-    for (let i of indices) {
-        points.push(vertices[i]);
-        colors.push(colorList[i]);
-    }
-    return [points, colors];
-}
 function sphericalEye(radius, theta, phi) {
     return vec3(
         radius * Math.sin(theta) * Math.cos(phi),
@@ -856,8 +700,26 @@ function sphericalEye(radius, theta, phi) {
     );
 }
 
-//Shepe işlemleri
-
+function setColors(color, lenth) {
+    for (let i = 0; i < lenth; i = i + 4) {
+        for (let j = 0; j < 4; j++) {
+            if (j == 3) {
+                color.push(1);
+            } else {
+                color.push(randomNumber(2));
+            }
+        }
+    }
+    return color;
+}
+function randomNumber(lengt, startNumber = 0) {
+    return Math.floor(Math.random() * lengt) + startNumber;
+}
+function randomInRange(min, max) {
+    return Math.random() < 0.5
+        ? (1 - Math.random()) * (max - min) + min
+        : Math.random() * (max - min) + min;
+}
 var va = vec4(0.0, 0.0, -1.0, 1);
 var vb = vec4(0.0, 0.942809, 0.333333, 1);
 var vc = vec4(-0.816497, -0.471405, 0.333333, 1);
