@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            .button {
+                background-color: #64f956;
+                border: none;
+                color: black;
+                padding: 15px 32px;
+                text-align: center;
+                text-decoration: none;
+                display: inline-block;
+                font-size: 16px;
+                margin: 4px 2px;
+                border-radius: 10px;
+                cursor: pointer;
+            }
+        </style>
+    </head>
+
+    <body style="background-color: lightgray">
+        <table>
+            <tr>
+                <td>
+                    <canvas id="canvas1" width="524" height="524">
+                        This browser does not support canvas element!
+                    </canvas>
+                </td>
+                <td valign="top">
+                    <div id="cam-props"></div>
+                </td>
+            </tr>
+        </table>
+        <!-- <table>
+   <tr> 
+     <canvas id="canvas"></canvas>
+    </tr>
+   <tr> 
+    <br>
+    <br>
+    <br>
+    <button class="button" type="button" onclick="btnclick(true)" style="margin-left: 45px;">Yukarı</button>
+    <br>
+    <button class="button" type="button" onclick="btnclick(true)">Sağ</button>
+    <button class="button" type="button" onclick="btnclick(false)">Sol</button>
+    <br>
+    <button class="button" type="button" onclick="btnclick(false)" style="margin-left: 45px;">Aşağı</button>
+  </tr>
+ </table> -->
+
+        <script type="text/javascript" src="../Common/webgl-utils.js"></script>
+        <script type="text/javascript" src="../Common/initShaders.js"></script>
+        <script type="text/javascript" src="../Common/MV.js"></script>
+        <script type="text/javascript" src="square.js"></script>
+    </body>
+</html>
